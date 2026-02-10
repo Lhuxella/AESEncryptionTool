@@ -87,6 +87,8 @@ public class AESEncryptionTool {
                 Path path = Paths.get(filePath);
                 Files.write(path, encryptedFileBytes);
 
+                System.out.println(path + " has been encrypted. ");
+
 
             } catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException |
                      IllegalBlockSizeException |
@@ -103,42 +105,49 @@ public class AESEncryptionTool {
 
     public static void decryptFile() {
 
-        System.out.println("Type the path of the file you want to decrypt");
+        System.out.println("Type the path of the file you want to decrypt. ");
         Scanner scan = new Scanner(System.in);
         filePath = scan.nextLine();
 
-        byte[] fileBytes;
+        File f = new File(filePath);
+        if(f.exists()) {
 
-        try {
-            fileBytes = Files.readAllBytes(Paths.get(filePath));
+            byte[] fileBytes;
+
+            try {
+                fileBytes = Files.readAllBytes(Paths.get(filePath));
 
 
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
 
-        try {
-            KeyGenerator generator = KeyGenerator.getInstance("AES");
+            try {
+                KeyGenerator generator = KeyGenerator.getInstance("AES");
 
-            generator.init(192);
+                generator.init(192);
 
-            //Retrieves public key from file
-            FileInputStream fin = new FileInputStream("public.key");
-            byte[] storedKey = fin.readAllBytes();
-            key = new SecretKeySpec(storedKey, "AES");
+                //Retrieves public key from file
+                FileInputStream fin = new FileInputStream("public.key");
+                byte[] storedKey = fin.readAllBytes();
+                key = new SecretKeySpec(storedKey, "AES");
 
-            Cipher cipher = Cipher.getInstance("AES/ECB/PKCS5Padding");
-            cipher.init(Cipher.DECRYPT_MODE, key);
+                Cipher cipher = Cipher.getInstance("AES/ECB/PKCS5Padding");
+                cipher.init(Cipher.DECRYPT_MODE, key);
 
-            byte[] encryptedFileBytes = cipher.doFinal(fileBytes);
+                byte[] encryptedFileBytes = cipher.doFinal(fileBytes);
 
-            Path path = Paths.get(filePath);
-            Files.write(path, encryptedFileBytes);
+                Path path = Paths.get(filePath);
+                Files.write(path, encryptedFileBytes);
 
-            fin.close();
+                fin.close();
+                System.out.println(path + " has been decrypted. ");
 
-        } catch (Exception e) {
-            throw new RuntimeException(e);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        } else {
+            System.out.println("File not found. ");
         }
     }
 }
