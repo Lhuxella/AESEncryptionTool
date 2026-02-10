@@ -1,8 +1,5 @@
 import javax.crypto.*;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -14,6 +11,7 @@ import java.util.Scanner;
 public class AESEncryptionTool {
 
     static Key key;
+    static String filePath = "Test.txt";
 
     public static void main(String[] args) {
 
@@ -44,7 +42,7 @@ public class AESEncryptionTool {
         byte[] fileBytes;
 
         try {
-            fileBytes = Files.readAllBytes(Paths.get("Test.txt"));
+            fileBytes = Files.readAllBytes(Paths.get(filePath));
 
 
         } catch (IOException e) {
@@ -57,11 +55,17 @@ public class AESEncryptionTool {
             generator.init(192);
             key = generator.generateKey();
 
+            //Stores public key
+            byte[] storedKey = key.getEncoded();
+            try(FileOutputStream fos = new FileOutputStream("public.key")) {
+                fos.write(storedKey);
+            }
+
             Cipher cipher = Cipher.getInstance("AES/ECB/PKCS5Padding");
             cipher.init(Cipher.ENCRYPT_MODE, key);
             byte[] encryptedFileBytes = cipher.doFinal(fileBytes);
 
-            Path path = Paths.get("Test.txt");
+            Path path = Paths.get(filePath);
             Files.write(path, encryptedFileBytes);
 
         } catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException | IllegalBlockSizeException |
@@ -79,7 +83,7 @@ public class AESEncryptionTool {
         byte[] fileBytes;
 
         try {
-            fileBytes = Files.readAllBytes(Paths.get("Test.txt"));
+            fileBytes = Files.readAllBytes(Paths.get(filePath));
 
 
         } catch (IOException e) {
@@ -90,14 +94,18 @@ public class AESEncryptionTool {
             KeyGenerator generator = KeyGenerator.getInstance("AES");
 
             generator.init(192);
-            //Key key = generator.generateKey();
+
+            //Retrieves public key from file
+//            FileInputStream fin = new FileInputStream("public.key");
+//            byte[] storedKey = fin.readAllBytes();
+//            key = generator.generateKey();
 
             Cipher cipher = Cipher.getInstance("AES/ECB/PKCS5Padding");
             cipher.init(Cipher.DECRYPT_MODE, key);
 
             byte[] encryptedFileBytes = cipher.doFinal(fileBytes);
 
-            Path path = Paths.get("Test.txt");
+            Path path = Paths.get(filePath);
             Files.write(path, encryptedFileBytes);
 
         } catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException | IllegalBlockSizeException |
