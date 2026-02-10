@@ -12,7 +12,7 @@ import java.util.Scanner;
 public class AESEncryptionTool {
 
     static Key key;
-    static String filePath = "Test.txt";
+    static String filePath;
 
     public static void main(String[] args) {
 
@@ -40,46 +40,72 @@ public class AESEncryptionTool {
 
     public static void encryptFile() {
 
-        byte[] fileBytes;
+        System.out.println("Type the path of the file you want to encrypt");
+        Scanner scan = new Scanner(System.in);
+        filePath = scan.nextLine();
 
-        try {
-            fileBytes = Files.readAllBytes(Paths.get(filePath));
+        File userFile = new File(filePath);
+        if (userFile.exists()) {
+
+            byte[] fileBytes;
+
+            try {
+                fileBytes = Files.readAllBytes(Paths.get(filePath));
 
 
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-
-        try {
-            KeyGenerator generator = KeyGenerator.getInstance("AES");
-
-            generator.init(192);
-            key = generator.generateKey();
-
-            //Stores public key
-            byte[] storedKey = key.getEncoded();
-            try(FileOutputStream fos = new FileOutputStream("public.key")) {
-                fos.write(storedKey);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
             }
 
-            Cipher cipher = Cipher.getInstance("AES/ECB/PKCS5Padding");
-            cipher.init(Cipher.ENCRYPT_MODE, key);
-            byte[] encryptedFileBytes = cipher.doFinal(fileBytes);
+            try {
 
-            Path path = Paths.get(filePath);
-            Files.write(path, encryptedFileBytes);
 
-        } catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException | IllegalBlockSizeException |
-                 BadPaddingException | IOException e) {
-            throw new RuntimeException(e);
+                File f = new File("public.key");
+                if (!f.exists()) {
+
+                    KeyGenerator generator = KeyGenerator.getInstance("AES");
+                    generator.init(192);
+                    key = generator.generateKey();
+
+                    //Stores public key
+                    byte[] storedKey = key.getEncoded();
+                    try (FileOutputStream fos = new FileOutputStream("public.key")) {
+                        fos.write(storedKey);
+
+                    }
+                } else {
+                    FileInputStream fin = new FileInputStream("public.key");
+                    byte[] storedKey = fin.readAllBytes();
+                    key = new SecretKeySpec(storedKey, "AES");
+                    fin.close();
+                }
+
+                Cipher cipher = Cipher.getInstance("AES/ECB/PKCS5Padding");
+                cipher.init(Cipher.ENCRYPT_MODE, key);
+                byte[] encryptedFileBytes = cipher.doFinal(fileBytes);
+
+                Path path = Paths.get(filePath);
+                Files.write(path, encryptedFileBytes);
+
+
+            } catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException |
+                     IllegalBlockSizeException |
+                     BadPaddingException | IOException e) {
+                throw new RuntimeException(e);
+            }
+        } else {
+            System.out.println("File does not exist.");
         }
-
 
     }
 
 
 
     public static void decryptFile() {
+
+        System.out.println("Type the path of the file you want to decrypt");
+        Scanner scan = new Scanner(System.in);
+        filePath = scan.nextLine();
 
         byte[] fileBytes;
 
@@ -100,7 +126,6 @@ public class AESEncryptionTool {
             FileInputStream fin = new FileInputStream("public.key");
             byte[] storedKey = fin.readAllBytes();
             key = new SecretKeySpec(storedKey, "AES");
-
 
             Cipher cipher = Cipher.getInstance("AES/ECB/PKCS5Padding");
             cipher.init(Cipher.DECRYPT_MODE, key);
