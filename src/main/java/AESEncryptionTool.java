@@ -1,4 +1,5 @@
 import javax.crypto.*;
+import javax.crypto.spec.SecretKeySpec;
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -96,9 +97,10 @@ public class AESEncryptionTool {
             generator.init(192);
 
             //Retrieves public key from file
-//            FileInputStream fin = new FileInputStream("public.key");
-//            byte[] storedKey = fin.readAllBytes();
-//            key = generator.generateKey();
+            FileInputStream fin = new FileInputStream("public.key");
+            byte[] storedKey = fin.readAllBytes();
+            key = new SecretKeySpec(storedKey, "AES");
+
 
             Cipher cipher = Cipher.getInstance("AES/ECB/PKCS5Padding");
             cipher.init(Cipher.DECRYPT_MODE, key);
@@ -108,8 +110,9 @@ public class AESEncryptionTool {
             Path path = Paths.get(filePath);
             Files.write(path, encryptedFileBytes);
 
-        } catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException | IllegalBlockSizeException |
-                 BadPaddingException | IOException e) {
+            fin.close();
+
+        } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
